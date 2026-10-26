@@ -25,6 +25,16 @@ The status of each device, as verified on real hardware. Rows in the matrix have
 | Pixel 9a ([notes](../device/tegu/NOTES.md)) | tegu | zumapro (Tensor G4) | WIP ([#28](https://github.com/derekross/omarchy-mobile/issues/28): private kernel) | WIP | WIP (simpledrm) | WIP (fixed clocks) | WIP | no | WIP | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no |
 | *Template* | *codename* | *SoC* | | | | | | | | | | | | | | | | | | | | | | |
 
+## External community integrations
+
+These use a separate hardware base and are not targets of this repository's
+installer or release images. Their notes distinguish owner-confirmed results
+from software checks and untested features.
+
+| Device | SoC | Integration and evidence | Installation status |
+| --- | --- | --- | --- |
+| PinePhone Pro with the official PinePhone Keyboard | Rockchip RK3399S | Experimental DanctNIX / Arch Linux ARM integration; Hyprland with Panfrost, portrait touch input and keyboard landscape mode. [Notes and validation limits](../device/pinephone-pro/NOTES.md#2026-10-24-external-integration-results) | microSD boot and subsequent eMMC boot reported on one device; no public base image or complete image builder. **Do not use the Pixel fastboot installer.** |
+
 ## cheetah (Pixel 7 Pro) in detail
 
 | Subsystem | Status | Notes | Plan |
