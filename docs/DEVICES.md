@@ -25,16 +25,6 @@ The status of each device, as verified on real hardware. Rows in the matrix have
 | Pixel 9a ([notes](../device/tegu/NOTES.md)) | tegu | zumapro (Tensor G4) | WIP ([#28](https://github.com/derekross/omarchy-mobile/issues/28): private kernel) | WIP | WIP (simpledrm) | WIP (fixed clocks) | WIP | no | WIP | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no |
 | *Template* | *codename* | *SoC* | | | | | | | | | | | | | | | | | | | | | | |
 
-## External community integrations
-
-These use a separate hardware base and are not targets of this repository's
-installer or release images. Their notes distinguish owner-confirmed results
-from software checks and untested features.
-
-| Device | SoC | Integration and evidence | Installation status |
-| --- | --- | --- | --- |
-| PinePhone Pro with the official PinePhone Keyboard | Rockchip RK3399S | Experimental DanctNIX / Arch Linux ARM integration; Hyprland with Panfrost, portrait touch input and keyboard landscape mode. [Notes and validation limits](../device/pinephone-pro/NOTES.md#2026-10-24-external-integration-results) | microSD boot and subsequent eMMC boot reported on one device; no public base image or complete image builder. **Do not use the Pixel fastboot installer.** |
-
 ## cheetah (Pixel 7 Pro) in detail
 
 | Subsystem | Status | Notes | Plan |
@@ -80,3 +70,4 @@ Devices we'd like to support, with the closest starting point. Open an issue to 
 | Pixel 10 family | mustang (10 Pro XL) | laguna (Tensor G5) | 10 Pro XL (mustang): stock facts, contributors welcome ([#18](https://github.com/derekross/omarchy-mobile/issues/18)) |
 | Pixel 11 Pro | grizzly | malibu (Tensor G6) | stock facts, contributors welcome ([#26](https://github.com/derekross/omarchy-mobile/issues/26)) |
 | POCO F3 | alioth | SM8250 (Snapdragon 870) | the first non-Pixel port: a guarded installer and root image in review ([#25](https://github.com/derekross/omarchy-mobile/pull/25)) |
+| PinePhone Pro | - | Rockchip RK3399S | No port in this tree yet; prior art: [Omarchy on the PinePhone Pro](https://github.com/FlorencioJP/omarchy-mobile-pinephone-pro) |
