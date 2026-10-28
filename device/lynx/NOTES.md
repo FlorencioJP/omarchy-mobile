@@ -3,6 +3,34 @@
 
 Findings from real hardware, newest first. Tracking issue: #36.
 
+## 2026-10-27: Bluetooth
+
+The WCN6855 BT core works on the APM USI1 UART (`serial@181b0000`, ttySAC18
+in Google's kernel), on the same shape as cheetah's BCM4389. Kernel side:
+[linux-omarchy-mobile#98](https://github.com/derekross/linux-omarchy-mobile/pull/98)
+(`cmu_apm`, `usi_apm1`, `serial_apm1`, `pinctrl_peric0`, `qcom,wcn6855-bt`
+with BT_EN on gpp16-2 and the Wi-Fi/BT 0.95 V buck on gph2-5 as a fixed
+regulator raised 7 ms before BT_EN, as stock `btpower` does).
+
+| Fact | Value | Source |
+| --- | --- | --- |
+| Kernel | `7.3.0-rc6-omamobile-lynx-wifi1`: linux-omarchy-mobile integration tree at `1cb4bd36f3be` plus the lynx Bluetooth nodes of kernel #98 | [V] `uname -r`, build lock |
+| Driver, firmware | `hci_uart` + `btqca`; `qca/hpbtfw21.tlv`, `qca/hpnv21.bin` from `linux-firmware-atheros` | [V] dmesg: `QCA setup on UART is completed` at 3 s after boot |
+| Chip | QCA product 0x13, SOC version `0x400c0210`, ROM 0x0201 (stock `cnss` says family 0x4, device 0xc, major 0x2, minor 0x10) | [V] dmesg, stock dmesg |
+| UART speed | `max-speed = <3000000>`. 3.2 Mbaud fails every TLV segment (`Frame reassembly failed (-84)`, `command 0xfc00 tx timeout`); 1, 2 and 3 Mbaud work | [V] three re-probes with the speed as the only change |
+| UART clocks | `gout_apm_apm_usi1_uart_ipclk` 197 MHz, pclk 394 MHz, as stock logs | [V] `clk_summary` |
+| Address | The controller comes up unconfigured (`btmgmt config`: missing `public-address`), so bluez ignores it until one is set. The phone now uses the address the bootloader publishes in `/chosen/config/bt_addr`, set by a local service when hci0 appears (cheetah's `omamobile-bt-addr` approach applies as is); without that property it falls back to a locally administered one derived from `machine-id` | [V] `btmgmt`, live DT |
+| Runtime overlay | Enabling `cmu_apm` after boot oopses: `gs201_cmu_probe` is `__init`. The nodes must be in the boot DTB | [V] kernel oops in `of_overlay_fdt_apply` |
+| PAN | `CONFIG_BT_BNEP` was off; `device/lynx/kernel.config` turns it on for tethering | [V] `/proc/config.gz` |
+
+Not done yet: pairing and PAN tethering with another phone, and
+carrying the modules, the udev rule and the address service in a lynx
+device package (on the test phone they come from a local package).
+Bench note for Wi-Fi work: with these nodes a regulator owns `gph2-5` and
+hci_qca drops it whenever Bluetooth goes down (stock `btpower` never does);
+unbind `serial0-0` from `hci_uart_qca` before a Wi-Fi harness takes the pin,
+and record whether a Wi-Fi run's kernel had the Bluetooth node.
+
 ## 2026-10-24: on-screen console
 
 - **simpledrm drives the panel through ABL's pipeline.** The board file reserves `0xfac00000` (`splash@fac00000`, no-map, 1080 x 2400 x 4 bytes) and adds a 1080x2400 a8r8g8b8 simple-framebuffer on it. simpledrm binds it, fbcon switches to it at 67x75 (Terminus 16x32), and the boot log and a shell prompt show on the panel. No panel driver: the framebuffer node has no panel phandle.
@@ -112,26 +140,3 @@ Findings from real hardware, newest first. Tracking issue: #36.
 | `vendor_boot` page size | 0x800, header v4 | [V] stock image header |
 | Panel | `sdc-s6e3fc5`, 1080x2400, on DECON0 and DSIM0 | [V] `exynos_drm.panel_name`, `dumpsys display`, stock dmesg |
 | Storage | 128 GB SK hynix UFS 3.1 | [V] `fastboot getvar` |
-
-## 2026-10-27: Bluetooth
-
-The WCN6855 BT core works on the APM USI1 UART (`serial@181b0000`, ttySAC18
-in Google's kernel), on the same shape as cheetah's BCM4389. Kernel side:
-[linux-omarchy-mobile#98](https://github.com/derekross/linux-omarchy-mobile/pull/98)
-(`cmu_apm`, `usi_apm1`, `serial_apm1`, `pinctrl_peric0`, `qcom,wcn6855-bt`
-with BT_EN on gpp16-2 and the Wi-Fi/BT 0.95 V buck on gph2-5 as a fixed
-regulator raised 7 ms before BT_EN, as stock `btpower` does).
-
-| Fact | Value | Source |
-| --- | --- | --- |
-| Driver, firmware | `hci_uart` + `btqca`; `qca/hpbtfw21.tlv`, `qca/hpnv21.bin` from `linux-firmware-atheros` | [V] dmesg: `QCA setup on UART is completed` at 3 s after boot |
-| Chip | QCA product 0x13, SOC version `0x400c0210`, ROM 0x0201 (stock `cnss` says family 0x4, device 0xc, major 0x2, minor 0x10) | [V] dmesg, stock dmesg |
-| UART speed | `max-speed = <3000000>`. 3.2 Mbaud fails every TLV segment (`Frame reassembly failed (-84)`, `command 0xfc00 tx timeout`); 1, 2 and 3 Mbaud work | [V] three re-probes with the speed as the only change |
-| UART clocks | `gout_apm_apm_usi1_uart_ipclk` 197 MHz, pclk 394 MHz, as stock logs | [V] `clk_summary` |
-| Address | The controller comes up unconfigured (`btmgmt config`: missing `public-address`), so bluez ignores it until one is set. The bootloader publishes the real one in `/chosen/config/bt_addr` (`94:45:60:xx:xx:xx`), so cheetah's `omamobile-bt-addr` approach applies as is | [V] `btmgmt`, live DT |
-| Runtime overlay | Enabling `cmu_apm` after boot oopses: `gs201_cmu_probe` is `__init`. The nodes must be in the boot DTB | [V] kernel oops in `of_overlay_fdt_apply` |
-| PAN | `CONFIG_BT_BNEP` was off; `device/lynx/kernel.config` turns it on for tethering | [V] `/proc/config.gz` |
-
-Not done yet: pairing and PAN tethering with another phone, and
-carrying the modules, the udev rule and the address service in a lynx
-device package (on the test phone they come from a local package).
